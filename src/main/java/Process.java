@@ -1,20 +1,23 @@
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.Timer;
-
-enum states {
-  READY,
-  IN_PROGRESS,
-  BLOCKED,
-  SUSPENDED,
-  DONE
-}
+import java.lang.Thread;
 
 public class Process extends Thread {
+  private enum states {
+    READY,
+    IN_PROGRESS,
+    BLOCKED,
+    SUSPENDED,
+    DONE
+  }
+
   private String name;
   private states state;
   private Timer durationTimer;
   private Timer schedulerTimer;
+
+  private boolean x = false;
 
   public Process(String name, int durationTime, int schedulerTimeout) {
     this.name = name;
@@ -41,6 +44,7 @@ public class Process extends Thread {
     return this.state.toString();
   }
 
+  @Override
   public void run() {
     if (this.state == states.READY) {
       System.out.println("Dando CPU al proceso " + this.name);
@@ -48,20 +52,25 @@ public class Process extends Thread {
       this.durationTimer.start();
       this.schedulerTimer.start();
 
+      System.out.println(x);
+
       while (true) { }
     }
   }
 
   public void block() {
-    System.out.println("Bloqueando");
-    this.interrupt();
-    this.state = states.BLOCKED;
     this.durationTimer.stop();
+    System.out.println("Bloqueando");
+    this.state = states.BLOCKED;
+    this.x = true;
+    this.state = states.READY;
+    this.interrupt();
   }
 
   public void finish() {
     System.out.println("Terminando");
-    this.interrupt();
+    this.schedulerTimer.stop();
     this.state = states.DONE;
+    this.interrupt();
   }
 }
